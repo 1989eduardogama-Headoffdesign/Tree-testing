@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tree Test — Portafolio Eduardo Gama</title>
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --surface: #FFFFFF;
+    --text: #111111;
+    --text-sec: #666666;
+    --border: #E6E6E6;
+    --accent: #0F766E;
+    --accent-soft: rgba(15, 118, 110, 0.08);
+    --radius: 12px;
+    color-scheme: light;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  }
+  .app {
+    max-width: 640px;
+    margin: 0 auto;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 20px 48px;
+  }
+  .eyebrow { font-size: 12px; color: var(--text-sec); margin: 0 0 4px; }
+  .title { font-size: 24px; font-weight: 700; margin: 0 0 12px; line-height: 1.25; }
+  .lead { font-size: 15px; color: var(--text-sec); line-height: 1.55; margin: 0 0 24px; }
+
+  .progress { font-size: 12px; color: var(--text-sec); margin-bottom: 8px; }
+
+  .task-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .task-card .task-label { font-size: 12px; color: var(--accent); font-weight: 600; margin: 0 0 6px; }
+  .task-card .task-text { font-size: 17px; font-weight: 600; line-height: 1.4; margin: 0; }
+
+  .breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-sec);
+    margin-bottom: 16px;
+  }
+  .breadcrumb button {
+    background: none;
+    border: none;
+    color: var(--text-sec);
+    font: inherit;
+    padding: 4px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .breadcrumb button:hover { background: var(--accent-soft); color: var(--accent); }
+  .breadcrumb span.sep { color: var(--border); }
+  .breadcrumb .current { color: var(--text); font-weight: 600; }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 15px;
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .option-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .option-btn .chevron { color: var(--text-sec); font-size: 13px; }
+
+  .confirm-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  .confirm-btn:active { opacity: 0.85; }
+  .confirm-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .back-btn {
+    width: 100%;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-sec);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .back-btn:disabled { opacity: 0.35; cursor: default; }
+
+  .primary-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .secondary-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 12px 20px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .result-row {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    background: var(--surface);
+  }
+  .result-row .task-text { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
+  .result-row .path-line { font-size: 13px; color: var(--text-sec); margin: 0 0 4px; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-top: 4px;
+  }
+  .badge.ok { background: rgba(15,118,110,0.12); color: var(--accent); }
+  .badge.miss { background: rgba(180,60,50,0.1); color: #b33c32; }
+  .badge.indirect { background: rgba(150,120,20,0.12); color: #8a6d1a; margin-left: 6px; }
+
+  textarea.export {
+    width: 100%;
+    min-height: 160px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    color: var(--text);
+    background: var(--surface);
+    resize: vertical;
+  }
+
+  .row-buttons { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .footer-note { font-size: 12px; color: var(--text-sec); margin-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+(function(){
+
+  // ---- Árbol propuesto (solo etiquetas, sin descripciones) ----
+  const TREE = [
+    { id: 'trayectoria', label: 'Mi trayectoria', children: [
+      { id: 'historia', label: 'Historia Lalo' },
+      { id: 'liderazgo', label: 'Liderazgo y equipo' },
+      { id: 'construyo', label: 'Lo que construyo' },
+      { id: 'ia', label: 'Adopción de IA' },
+      { id: 'decisiones', label: 'Marco de decisiones' },
+      { id: 'skills', label: 'Habilidades y certificaciones' },
+    ]},
+    { id: 'casos', label: 'Casos de estudio', children: [
+      { id: 'regalus-caso', label: 'RegALUS' },
+      { id: 'sellout-caso', label: 'Sell Out' },
+      { id: 'bonif-caso', label: 'Bonificaciones' },
+    ]},
+    { id: 'book', label: 'Mi Book', children: [
+      { id: 'galeria-regalus', label: 'Galería RegALUS', children: [
+        { id: 'catalogo', label: 'Catálogo' },
+        { id: 'direcciones', label: 'Direcciones' },
+        { id: 'metas', label: 'Metas' },
+        { id: 'sellout-tag', label: 'Sellout' },
+        { id: 'sellin-tag', label: 'Sellin' },
+        { id: 'giftcards', label: 'Giftcards' },
+      ]},
+      { id: 'con-quien', label: 'Con Quién He Trabajado' },
+    ]},
+    { id: 'ds', label: 'Design System', children: [
+      { id: 'foundations', label: 'Foundations' },
+      { id: 'atomos', label: 'Átomos' },
+      { id: 'moleculas', label: 'Moléculas' },
+      { id: 'organismos', label: 'Organismos' },
+    ]},
+    { id: 'cv', label: 'CV' },
+    { id: 'hablemos', label: 'Hablemos' },
+  ];
+
+  const TASKS = [
+    { text: 'Quieres saber cuántos años de experiencia tiene Eduardo y qué tipo de líder es.', correctPrefix: ['trayectoria'] },
+    { text: 'Quieres ver el caso de estudio completo de la plataforma RegALUS.', correctPrefix: ['casos', 'regalus-caso'] },
+    { text: 'Quieres ver ejemplos visuales (pantallas reales) del trabajo de UI de Eduardo.', correctPrefix: ['book', 'galeria-regalus'] },
+    { text: 'Quieres saber si tiene experiencia con Design Systems y ver componentes reales.', correctPrefix: ['ds'] },
+    { text: 'Quieres saber con qué marcas o clientes ha trabajado Eduardo.', correctPrefix: ['book', 'con-quien'] },
+    { text: 'Quieres descargar su CV en PDF.', correctPrefix: ['cv'] },
+    { text: 'Quieres saber cómo organiza y lidera a su equipo de diseño.', correctPrefix: ['trayectoria', 'liderazgo'] },
+    { text: 'Quieres contactarlo directamente para platicar de una vacante.', correctPrefix: ['hablemos'] },
+  ];
+
+  let state = {
+    screen: 'intro', // intro | task | results
+    taskIndex: 0,
+    path: [],       // array of node ids, current position
+    backtracked: false,
+    results: [],    // { taskText, pathLabels, pathIds, correct, indirect }
+  };
+
+  function findNode(path) {
+    let level = TREE, node = null;
+    for (const id of path) {
+      node = level.find(n => n.id === id);
+      if (!node) return null;
+      level = node.children || [];
+    }
+    return node;
+  }
+  function currentLevel() {
+    if (state.path.length === 0) return TREE;
+    const node = findNode(state.path);
+    return (node && node.children) ? node.children : [];
+  }
+  function pathLabels(path) {
+    let level = TREE, labels = [];
+    for (const id of path) {
+      const node = level.find(n => n.id === id);
+      if (!node) break;
+      labels.push(node.label);
+      level = node.children || [];
+    }
+    return labels;
+  }
+  function isCorrect(path, prefix) {
+    if (path.length < prefix.length) return false;
+    return prefix.every((id, i) => path[i] === id);
+  }
+
+  function render() {
+    const app = document.getElementById('app');
+    if (state.screen === 'intro') app.innerHTML = renderIntro();
+    else if (state.screen === 'task') app.innerHTML = renderTask();
+    else app.innerHTML = renderResults();
+    attachHandlers();
+  }
+
+  function renderIntro() {
+    return `
+      <p class="eyebrow">Tree test · Portafolio Eduardo Gama</p>
+      <h1 class="title">Vamos a probar si la estructura del sitio tiene sentido.</h1>
+      <p class="lead">
+        Vas a ver una lista de categorías, solo texto — sin diseño, sin páginas reales.
+        Te voy a dar ${TASKS.length} tareas, una por una. Para cada una, navega dando clic en las
+        categorías hasta llegar a donde tú esperarías encontrar la respuesta, y confirma con el botón
+        "Aquí es donde buscaría esto". No hay respuestas correctas o incorrectas para ti — solo confía
+        en tu primer instinto.
+      </p>
+      <button class="primary-btn" data-action="start">Empezar (${TASKS.length} tareas)</button>
+    `;
+  }
+
+  function renderTask() {
+    const task = TASKS[state.taskIndex];
+    const level = currentLevel();
+    const crumbs = ['Inicio', ...pathLabels(state.path)];
+    return `
+      <p class="progress">Tarea ${state.taskIndex + 1} de ${TASKS.length}</p>
+      <div class="task-card">
+        <p class="task-label">Tu tarea</p>
+        <p class="task-text">${task.text}</p>
+      </div>
+      <div class="breadcrumb">
+        ${crumbs.map((c, i) => {
+          const isLast = i === crumbs.length - 1;
+          if (isLast) return `<span class="current">${c}</span>`;
+          return `<button data-action="jump" data-depth="${i}">${c}</button><span class="sep">/</span>`;
+        }).join('')}
+      </div>
+      <div class="options">
+        ${level.map(n => `
+          <button class="option-btn" data-action="enter" data-id="${n.id}">
+            <span>${n.label}</span>
+            <span class="chevron">${n.children ? '›' : ''}</span>
+          </button>
+        `).join('') || '<p class="lead">No hay más subcategorías aquí.</p>'}
+      </div>
+      <button class="confirm-btn" data-action="confirm" ${state.path.length === 0 ? 'disabled' : ''}>
+        📍 Aquí es donde buscaría esto
+      </button>
+      <button class="back-btn" data-action="back" ${state.path.length === 0 ? 'disabled' : ''}>← Regresar un nivel</button>
+    `;
+  }
+
+  function renderResults() {
+    const correctCount = state.results.filter(r => r.correct).length;
+    const exportText = buildExportText();
+    return `
+      <p class="eyebrow">Resultados</p>
+      <h1 class="title">${correctCount} de ${TASKS.length} tareas resueltas en la ruta esperada.</h1>
+      <p class="lead">Revisa cada tarea. "Ruta directa" significa que no regresó ningún nivel antes de confirmar.</p>
+      ${state.results.map(r => `
+        <div class="result-row">
+          <p class="task-text">${r.taskText}</p>
+          <p class="path-line">Ruta elegida: ${r.pathLabels.join(' → ') || '(confirmó en Inicio)'}</p>
+          <span class="badge ${r.correct ? 'ok' : 'miss'}">${r.correct ? 'Coincide con lo esperado' : 'No coincide'}</span>
+          ${r.indirect ? '<span class="badge indirect">Con retrocesos</span>' : ''}
+        </div>
+      `).join('')}
+      <p class="lead" style="margin-top:24px;">Copia esto y mándaselo a Eduardo:</p>
+      <textarea class="export" readonly>${exportText}</textarea>
+      <div class="row-buttons">
+        <button class="primary-btn" data-action="copy">Copiar resultados</button>
+        <button class="secondary-btn" data-action="restart">Repetir la prueba</button>
+      </div>
+      <p class="footer-note">Este ejercicio no guarda datos en ningún servidor — todo vive en esta sesión.</p>
+    `;
+  }
+
+  function buildExportText() {
+    const lines = [`Tree test — Portafolio Eduardo Gama`, `Resultado: ${state.results.filter(r=>r.correct).length}/${TASKS.length} en ruta esperada`, ''];
+    state.results.forEach((r, i) => {
+      lines.push(`${i+1}. ${r.taskText}`);
+      lines.push(`   Ruta: ${r.pathLabels.join(' > ') || '(Inicio)'}`);
+      lines.push(`   ${r.correct ? 'OK - coincide' : 'NO coincide con lo esperado'}${r.indirect ? ' | con retrocesos' : ''}`);
+      lines.push('');
+    });
+    return lines.join('\n');
+  }
+
+  function attachHandlers() {
+    document.querySelectorAll('[data-action]').forEach(el => {
+      el.addEventListener('click', onAction);
+    });
+  }
+
+  function onAction(e) {
+    const action = e.currentTarget.dataset.action;
+    if (action === 'start') {
+      state.screen = 'task';
+      state.taskIndex = 0;
+      state.path = [];
+      state.backtracked = false;
+      state.results = [];
+    } else if (action === 'enter') {
+      state.path.push(e.currentTarget.dataset.id);
+    } else if (action === 'jump') {
+      const depth = parseInt(e.currentTarget.dataset.depth, 10);
+      state.path = state.path.slice(0, depth);
+      state.backtracked = true;
+    } else if (action === 'back') {
+      state.path.pop();
+      state.backtracked = true;
+    } else if (action === 'confirm') {
+      const task = TASKS[state.taskIndex];
+      state.results.push({
+        taskText: task.text,
+        pathIds: [...state.path],
+        pathLabels: pathLabels(state.path),
+        correct: isCorrect(state.path, task.correctPrefix),
+        indirect: state.backtracked,
+      });
+      state.taskIndex += 1;
+      state.path = [];
+      state.backtracked = false;
+      if (state.taskIndex >= TASKS.length) {
+        state.screen = 'results';
+      }
+    } else if (action === 'restart') {
+      state.screen = 'intro';
+    } else if (action === 'copy') {
+      const text = buildExportText();
+      navigator.clipboard.writeText(text).then(() => {
+        e.currentTarget.textContent = 'Copiado ✓';
+        setTimeout(() => { e.currentTarget.textContent = 'Copiar resultados'; }, 1500);
+      }).catch(() => {
+        alert('No se pudo copiar automáticamente. Selecciona el texto manualmente.');
+      });
+    }
+    render();
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
